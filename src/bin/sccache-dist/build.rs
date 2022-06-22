@@ -200,6 +200,8 @@ impl OverlayBuilder {
                     }
                 };
 
+                /*
+
                 tar::Archive::new(GzDecoder::new(toolchain_rdr))
                     .unpack(&toolchain_dir)
                     .or_else(|e| {
@@ -211,6 +213,7 @@ impl OverlayBuilder {
                             .context("Failed to remove corrupt toolchain")?;
                         Err(Error::from(e))
                     })?;
+                    */
 
                 let entry = DeflatedToolchain {
                     path: toolchain_dir,
@@ -363,6 +366,9 @@ impl OverlayBuilder {
                         .arg("--bind")
                         .arg(&target_dir)
                         .arg("/")
+                        .arg("--bind-try")
+                        .arg("/nix/")
+                        .arg("/nix/")
                         .args(&["--proc", "/proc"])
                         .args(&["--dev", "/dev"])
                         .arg("--chdir")
