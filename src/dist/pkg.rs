@@ -83,6 +83,25 @@ mod toolchain_imp {
         }
 
         pub fn add_executable_and_deps(&mut self, executable: PathBuf) -> Result<()> {
+            // If the executable is in the nix store, then the user should use
+            // nix-copy-closure to copy the toolchain. At least until I do this
+            // automagically
+            if (!executable.starts_with("/nix/")) {
+                let mut remaining = vec![executable];
+                while let Some(obj_path) = remaining.pop() {
+                    assert!(obj_path.is_absolute());
+                    let tar_path = tarify_path(&obj_path)?;
+                    // If file already in the set, assume we've analysed all deps
+                    if self.file_set.contains_key(&tar_path) {
+                        continue;
+                    }
+                    let ldd_libraries = find_ldd_libraries(&obj_path).with_context(|| {
+                        format!("Failed to analyse {} with ldd", obj_path.display())
+                    })?;
+                    remaining.extend(ldd_libraries);
+                    self.file_set.insert(tar_path, obj_path);
+                }
+            }
             Ok(())
         }
 
